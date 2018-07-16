@@ -38,6 +38,7 @@ opt.dataroot = 'babi_data/processed_1/train/%d_graphs.txt' % opt.task_id
 if opt.cuda:
     torch.cuda.manual_seed_all(opt.manualSeed)
 
+
 def main(opt):
     train_dataset = bAbIDataset(opt.dataroot, opt.question_id, True)
     train_dataloader = bAbIDataloader(train_dataset, batch_size=opt.batchSize, \
@@ -70,4 +71,3 @@ def main(opt):
 
 if __name__ == "__main__":
     main(opt)
-

@@ -1,12 +1,14 @@
 import torch
 import torch.nn as nn
 
+
 class AttrProxy(object):
     """
     Translates index lookups into attribute lookups.
     To implement some trick which able to use list of nn.Module in a nn.Module
     see https://discuss.pytorch.org/t/list-of-nn-module-in-a-nn-module/219/2
     """
+
     def __init__(self, module, prefix):
         self.module = module
         self.prefix = prefix
@@ -20,6 +22,7 @@ class Propogator(nn.Module):
     Gated Propogator for GGNN
     Using LSTM gating mechanism
     """
+
     def __init__(self, state_dim, n_node, n_edge_types):
         super(Propogator, self).__init__()
 
@@ -27,21 +30,21 @@ class Propogator(nn.Module):
         self.n_edge_types = n_edge_types
 
         self.reset_gate = nn.Sequential(
-            nn.Linear(state_dim*3, state_dim),
+            nn.Linear(state_dim * 3, state_dim),
             nn.Sigmoid()
         )
         self.update_gate = nn.Sequential(
-            nn.Linear(state_dim*3, state_dim),
+            nn.Linear(state_dim * 3, state_dim),
             nn.Sigmoid()
         )
         self.tansform = nn.Sequential(
-            nn.Linear(state_dim*3, state_dim),
+            nn.Linear(state_dim * 3, state_dim),
             nn.Tanh()
         )
 
     def forward(self, state_in, state_out, state_cur, A):
-        A_in = A[:, :, :self.n_node*self.n_edge_types]
-        A_out = A[:, :, self.n_node*self.n_edge_types:]
+        A_in = A[:, :, :self.n_node * self.n_edge_types]
+        A_out = A[:, :, self.n_node * self.n_edge_types:]
 
         a_in = torch.bmm(A_in, state_in)
         a_out = torch.bmm(A_out, state_out)
@@ -63,11 +66,12 @@ class GGNN(nn.Module):
     Mode: SelectNode
     Implementation based on https://arxiv.org/abs/1511.05493
     """
+
     def __init__(self, opt):
         super(GGNN, self).__init__()
 
-        assert (opt.state_dim >= opt.annotation_dim,  \
-                'state_dim must be no less than annotation_dim')
+        assert opt.state_dim >= opt.annotation_dim, \
+            'state_dim must be no less than annotation_dim'
 
         self.state_dim = opt.state_dim
         self.annotation_dim = opt.annotation_dim
@@ -111,9 +115,9 @@ class GGNN(nn.Module):
                 in_states.append(self.in_fcs[i](prop_state))
                 out_states.append(self.out_fcs[i](prop_state))
             in_states = torch.stack(in_states).transpose(0, 1).contiguous()
-            in_states = in_states.view(-1, self.n_node*self.n_edge_types, self.state_dim)
+            in_states = in_states.view(-1, self.n_node * self.n_edge_types, self.state_dim)
             out_states = torch.stack(out_states).transpose(0, 1).contiguous()
-            out_states = out_states.view(-1, self.n_node*self.n_edge_types, self.state_dim)
+            out_states = out_states.view(-1, self.n_node * self.n_edge_types, self.state_dim)
 
             prop_state = self.propogator(in_states, out_states, prop_state, A)
 
